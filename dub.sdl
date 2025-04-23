@@ -1,0 +1,48 @@
+name "llvm2x"
+platforms "windows"
+
+buildType "debug" {
+	buildOptions "debugMode" "debugInfo" "warningsAsErrors" "stackStomping" #"alwaysStackFrame" 
+}
+buildType "release" {
+	buildOptions "releaseMode" "optimize" "inline" "noBoundsCheck"
+}
+
+# Tell the preprocessor where to find the LLVM headers
+dflags "-P=-IC:/Temp/llvm-project/llvm/include/"
+dflags "-P=-IC:/Temp/llvm-project/llvm/build/include/"
+
+lflags "/LIBPATH:C:/work/llvm-20/lib"
+
+# run dumpLibNames() to get this list:
+libs "LLVMAggressiveInstCombine" "LLVMAnalysis" "LLVMAsmParser" "LLVMAsmPrinter" "LLVMBinaryFormat" 
+libs "LLVMBitReader" "LLVMBitWriter" "LLVMBitstreamReader" "LLVMCFGuard" "LLVMCGData"
+libs "LLVMCodeGen" "LLVMCodeGenTypes" "LLVMCore" "LLVMCoroutines" "LLVMCoverage"
+libs "LLVMDWARFLinker" "LLVMDWARFLinkerClassic" "LLVMDWARFLinkerParallel" "LLVMDWP" "LLVMDebugInfoBTF"
+libs "LLVMDebugInfoCodeView" "LLVMDebugInfoDWARF" "LLVMDebugInfoGSYM" "LLVMDebugInfoLogicalView" "LLVMDebugInfoMSF"
+libs "LLVMDebugInfoPDB" "LLVMDemangle" "LLVMDlltoolDriver" "LLVMExecutionEngine" "LLVMExtensions"
+libs "LLVMFileCheck" "LLVMFrontendAtomic" "LLVMFrontendDriver" "LLVMFrontendHLSL" "LLVMFrontendOffloading"
+libs "LLVMFrontendOpenACC" "LLVMFrontendOpenMP" "LLVMFuzzMutate" "LLVMFuzzerCLI" "LLVMGlobalISel"
+libs "LLVMHipStdPar" "LLVMIRPrinter" "LLVMIRReader" "LLVMInstCombine" "LLVMInstrumentation"
+libs "LLVMInterfaceStub" "LLVMInterpreter" "LLVMJITLink" "LLVMLTO" "LLVMLibDriver"
+libs "LLVMLineEditor" "LLVMLinker" "LLVMMC" "LLVMMCA" "LLVMMCDisassembler"
+libs "LLVMMCJIT" "LLVMMCParser" "LLVMMIRParser" "LLVMObjCARCOpts" "LLVMObjCopy"
+libs "LLVMObject" "LLVMObjectYAML" "LLVMOption" "LLVMOrcDebugging" "LLVMOrcJIT"
+libs "LLVMOrcShared" "LLVMOrcTargetProcess" "LLVMPasses" "LLVMProfileData" "LLVMRemarks"
+libs "LLVMRuntimeDyld" "LLVMSandboxIR" "LLVMScalarOpts" "LLVMSelectionDAG" "LLVMSupport"
+libs "LLVMSymbolize" "LLVMTableGen" "LLVMTarget" "LLVMTargetParser" "LLVMTelemetry"
+libs "LLVMTextAPI" "LLVMTextAPIBinaryReader" "LLVMTransformUtils" "LLVMVectorize" "LLVMWindowsDriver"
+libs "LLVMWindowsManifest" "LLVMX86AsmParser" "LLVMX86CodeGen" "LLVMX86Desc" "LLVMX86Disassembler"
+libs "LLVMX86Info" "LLVMX86TargetMCA" "LLVMXRay" "LLVMipo"
+
+# Required for RtlGetLastNtStatus in lib/Support/ErrorHandling.cpp.
+libs "ntdll"
+
+configuration "test" {
+	targetType "executable"
+	targetName "bin-test"
+}
+configuration "library" {
+	targetType "library"
+	excludedSourceFiles "src/test.d"
+}

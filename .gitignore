@@ -1,0 +1,14 @@
+
+out/
+bin/
+.idea/
+*.iml
+*.lnk
+
+.dub/
+.logs/
+
+*.exe
+*.lib
+*.lnk
+*.pdb
