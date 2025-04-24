@@ -47,6 +47,37 @@ string writeModuleToStringASM(LLVMModuleRef mod, LLVMTargetMachineRef targetMach
     }
     return null;
 }
+/**
+ * Write the module to a memory buffer
+ *
+ * @param mod The module to write
+ * @param targetMachine The target machine to use for the output
+ * @param genType LLVMCodeGenFileType.LLVMAssemblyFile or LLVMCodeGenFileType.LLVMObjectFile
+ * 
+ * Returns the memory buffer or null if there was an error (in this case the error parameter is populated)
+ *
+ * eg.
+ * 
+ * if(auto memBuf = writeModuleToMemory(mod, targetMachine, LLVMCodeGenFileType.LLVMAssemblyFile, error)) {
+ *     auto size = LLVMGetBufferSize(memBuf);
+ *     auto ptr = LLVMGetBufferStart(memBuf);
+ *     string str = ptr[0..size].idup;
+ *     LLVMDisposeMemoryBuffer(memBuf);
+ *     return str;
+ * }
+ */
+LLVMMemoryBufferRef writeModuleToMemory(LLVMModuleRef mod, LLVMTargetMachineRef targetMachine, LLVMCodeGenFileType genType, char* error) {
+    LLVMMemoryBufferRef memBuf;
+    LLVMTargetMachineEmitToMemoryBuffer(
+        targetMachine,
+        mod,
+        genType,
+        &error,
+        &memBuf
+    );
+    return memBuf;
+}
+
 /** 
  * Write the module to a file
  *

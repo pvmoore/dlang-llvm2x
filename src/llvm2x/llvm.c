@@ -31,3 +31,9 @@
  * LLVMCreatePassBuilderOptions
  */
 #include "c:\\Temp\\llvm-project\\llvm\\include\\llvm-c\\Transforms\\PassBuilder.h"
+
+/**
+ * LLVMOrcCreateLLJITBuilder
+ */
+#include "c:\\Temp\\llvm-project\\llvm\\include\\llvm-c\\LLJIT.h"
+#include "c:\\Temp\\llvm-project\\llvm\\include\\llvm-c\\OrcEE.h"

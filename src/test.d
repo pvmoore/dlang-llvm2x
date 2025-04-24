@@ -1,8 +1,12 @@
 module test;
 
-import std.stdio;
+public:
+
+import std.stdio  : writefln, writeln;
+import std.format : format;
 
 import llvm2x;
+import test_jit;
 
 void main() {
 
@@ -29,8 +33,8 @@ void main() {
     LLVMInitializeX86Target();
     LLVMInitializeX86TargetMC();
     LLVMInitializeX86AsmPrinter();
-    // LLVMInitializeX86AsmParser();
-    // LLVMInitializeX86Disassembler();
+    LLVMInitializeX86AsmParser();
+    LLVMInitializeX86Disassembler();
 
     string targetTriple = "x86_64-pc-windows-msvc";
 
@@ -51,11 +55,8 @@ void main() {
     writefln("Running optimiser ...");
     // Run the optimiser on the whole module or a single function:
 
-    //LLVMErrorRef errorRef = LLVMRunPasses(testModule, "default<O3>", targetMachine, passBuilderOptions);
-    LLVMErrorRef errorRef = LLVMRunPassesOnFunction(funcValue, "adce,dse", targetMachine, passBuilderOptions);
-    if(errorRef !is null) {
-        writefln("error = %s", LLVMGetErrorMessage(errorRef).fromStringz());
-    }
+    //checkError(LLVMRunPasses(testModule, "default<O3>", targetMachine, passBuilderOptions));
+    checkError(LLVMRunPassesOnFunction(funcValue, "adce,dse", targetMachine, passBuilderOptions));
 
     writefln("Optimised module:");
     writefln("%s", testModule.printModuleToString());
@@ -67,6 +68,7 @@ void main() {
     // writeln();
     // writeln(asmOut);
 
+    testJit(targetMachine);
 
     if(testModule) {
         LLVMDisposeModule(testModule);
@@ -80,8 +82,11 @@ LLVMValueRef createTestFunction(LLVMContextWrapper ctx, LLVMModuleRef mod) {
     // Add the function to the module
     LLVMValueRef funcValue = LLVMAddFunction(mod, "test", funcType);
 
+    // Set the linkage
+    LLVMSetLinkage(funcValue, LLVMLinkage.LLVMExternalLinkage);
+
     // Set the calling convention (The default is C)
-    LLVMSetFunctionCallConv(funcValue, CallingConv.Fast);
+    LLVMSetFunctionCallConv(funcValue, CallingConv.C);
 
     // Add the entry block
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(funcValue, "entry");
@@ -172,4 +177,10 @@ void setDiagnosticHandler(LLVMContextWrapper wrapper) {
 
     // Get the diagnostic context
     void* theDiagnosticContext = LLVMContextGetDiagnosticContext(wrapper.ctx);
+}
+
+void checkError(LLVMErrorRef err) {
+    if(err !is null) {
+        throw new Exception("%s".format(LLVMGetErrorMessage(err).fromStringz()));
+    }
 }
