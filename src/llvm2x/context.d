@@ -26,8 +26,26 @@ public:
     LLVMTypeRef voidType() {
         return LLVMVoidTypeInContext(ctx);
     } 
+    LLVMTypeRef int1Type() {
+        return LLVMInt1TypeInContext(ctx);
+    }
+    LLVMTypeRef int8Type() {
+        return LLVMInt8TypeInContext(ctx);
+    }
+    LLVMTypeRef int16Type() {
+        return LLVMInt16TypeInContext(ctx);
+    }
     LLVMTypeRef int32Type() {
         return LLVMInt32TypeInContext(ctx);
+    }
+    LLVMTypeRef int64Type() {
+        return LLVMInt64TypeInContext(ctx);
+    }
+    LLVMTypeRef floatType() {
+        return LLVMFloatTypeInContext(ctx);
+    }
+    LLVMTypeRef doubleType() {
+        return LLVMDoubleTypeInContext(ctx);
     }
 }
 
