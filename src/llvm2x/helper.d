@@ -166,6 +166,9 @@ void setValueName(LLVMValueRef val, string name) {
 string toString(LLVMValueRef val) {
     return cast(string)LLVMPrintValueToString(val).fromStringz();
 }
+string toString(LLVMTypeRef type) {
+    return cast(string)LLVMPrintTypeToString(type).fromStringz();
+}
 string getAsString(LLVMValueRef val) {
     return cast(string)LLVMGetAsString(val, null).fromStringz();
 }

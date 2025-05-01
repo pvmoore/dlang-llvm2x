@@ -37,3 +37,5 @@
  */
 #include "c:\\Temp\\llvm-project\\llvm\\include\\llvm-c\\LLJIT.h"
 #include "c:\\Temp\\llvm-project\\llvm\\include\\llvm-c\\OrcEE.h"
+
+#include "c:\\Temp\\llvm-project\\llvm\\include\\llvm-c\\Analysis.h"

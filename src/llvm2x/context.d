@@ -22,7 +22,14 @@ public:
     LLVMModuleRef createModule(string name) {
         return LLVMModuleCreateWithNameInContext(name.toStringz(), ctx);
     }
-
+    LLVMTypeRef structType(string name, LLVMTypeRef[] types, bool packed) {
+        LLVMTypeRef s = LLVMStructCreateNamed(ctx, name.toStringz());
+        LLVMStructSetBody(s, types.ptr, cast(uint)types.length, cast(LLVMBool)packed);
+        return s;
+    }
+    LLVMTypeRef structType(LLVMTypeRef[] types, bool packed) {
+        return LLVMStructTypeInContext(ctx, types.ptr, cast(uint)types.length, cast(LLVMBool)packed);
+    }
     LLVMTypeRef voidType() {
         return LLVMVoidTypeInContext(ctx);
     } 

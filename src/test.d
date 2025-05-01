@@ -61,6 +61,23 @@ void main() {
     writefln("Optimised module:");
     writefln("%s", testModule.printModuleToString());
 
+    writefln("Verifying function '%s'", funcValue.getValueName());
+    LLVMBool fv = LLVMVerifyFunction(funcValue, LLVMVerifierFailureAction.LLVMPrintMessageAction);
+    if(fv!=0) {
+        writeln("Function verification failed");
+    } else {
+        writeln("Function verification passed");
+    }
+
+    writefln("Verifying module '%s'", testModule.getModuleName());
+    char* msgs;
+    LLVMBool mv = LLVMVerifyModule(testModule, LLVMVerifierFailureAction.LLVMPrintMessageAction, &msgs);
+    if(mv!=0) {
+        writeln("Module verification failed: ", msgs.fromStringz());
+    } else {
+        writeln("Module verification passed");
+    }
+
     // Generate and dump the assembly
     LLVMSetTargetMachineAsmVerbosity(targetMachine, 1);
     LLVMSetTargetMachineGlobalISel(targetMachine, 1);
@@ -68,7 +85,9 @@ void main() {
     // writeln();
     // writeln(asmOut);
 
-    testJit(targetMachine);
+    static if(false) {
+        testJit(targetMachine);
+    }
 
     if(testModule) {
         LLVMDisposeModule(testModule);
