@@ -3,10 +3,15 @@ module llvm2x.helper;
 import llvm2x;
 import llvm = llvm2x.llvm;
 
+public:
+
 /**
  * Helper functions for the LLVM C wrapper
  */
 
+LLVMBool toLLVMBool(bool b) {
+    return b ? 1 : 0;
+}
 //────────────────────────────────────────────────────────────────────────────────────────────────── modules
 string getModuleName(LLVMModuleRef mod) {
     ulong len;
