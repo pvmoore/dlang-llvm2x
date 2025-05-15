@@ -58,6 +58,10 @@ public:
         return LLVMDoubleTypeInContext(ctx);
     }
 
+    LLVMValueRef constString(string str) {
+        return LLVMConstStringInContext2(ctx, str.toStringz(), str.length, 0);
+    }
+
     // These don't require a context so probably we shouldn't include them here
 
     // LLVMTypeRef pointerType(LLVMTypeRef type, uint addressSpace = 0) {

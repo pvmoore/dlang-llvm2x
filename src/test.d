@@ -7,6 +7,7 @@ import std.format : format;
 
 import llvm2x;
 import test_jit;
+import test_create_module_from_src;
 
 void main() {
 
@@ -40,58 +41,63 @@ void main() {
 
     LLVMTargetMachineRef targetMachine = createTargetMachine(targetTriple);
 
-    LLVMPassBuilderOptionsRef passBuilderOptions = createPassOptions();
+    static if(false) {
+        LLVMPassBuilderOptionsRef passBuilderOptions = createPassOptions();
 
-    // Create a module
-    LLVMModuleRef testModule = llvmContext.createModule("test");
-    LLVMSetTarget(testModule, targetTriple.toStringz());
-    writefln("Module created: %s '%s'", testModule, testModule.getModuleName());
+        // Create a module
+        LLVMModuleRef testModule = llvmContext.createModule("test");
+        LLVMSetTarget(testModule, targetTriple.toStringz());
+        writefln("Module created: %s '%s'", testModule, testModule.getModuleName());
 
-    LLVMValueRef funcValue = createTestFunction(llvmContext, testModule);
-    writefln("Module:");
-    writefln("%s", testModule.printModuleToString());
+        LLVMValueRef funcValue = createTestFunction(llvmContext, testModule);
+        writefln("Module:");
+        writefln("%s", testModule.printModuleToString());
 
-    // Optimize the module
-    writefln("Running optimiser ...");
-    // Run the optimiser on the whole module or a single function:
+        // Optimize the module
+        writefln("Running optimiser ...");
+        // Run the optimiser on the whole module or a single function:
 
-    //checkError(LLVMRunPasses(testModule, "default<O3>", targetMachine, passBuilderOptions));
-    checkError(LLVMRunPassesOnFunction(funcValue, "adce,dse", targetMachine, passBuilderOptions));
+        checkError(LLVMRunPasses(testModule, "default<O3>", targetMachine, passBuilderOptions));
+        //checkError(LLVMRunPassesOnFunction(funcValue, "adce,dse", targetMachine, passBuilderOptions));
 
-    writefln("Optimised module:");
-    writefln("%s", testModule.printModuleToString());
+        writefln("Optimised module:");
+        writefln("%s", testModule.printModuleToString());
 
-    writefln("Verifying function '%s'", funcValue.getValueName());
-    LLVMBool fv = LLVMVerifyFunction(funcValue, LLVMVerifierFailureAction.LLVMPrintMessageAction);
-    if(fv!=0) {
-        writeln("Function verification failed");
-    } else {
-        writeln("Function verification passed");
+        writefln("Verifying function '%s'", funcValue.getValueName());
+        LLVMBool fv = LLVMVerifyFunction(funcValue, LLVMVerifierFailureAction.LLVMPrintMessageAction);
+        if(fv!=0) {
+            writeln("Function verification failed");
+        } else {
+            writeln("Function verification passed");
+        }
+
+        writefln("Verifying module '%s'", testModule.getModuleName());
+        char* msgs;
+        LLVMBool mv = LLVMVerifyModule(testModule, LLVMVerifierFailureAction.LLVMPrintMessageAction, &msgs);
+        if(mv!=0) {
+            writeln("Module verification failed: ", msgs.fromStringz());
+        } else {
+            writeln("Module verification passed");
+        }
+
+        // Generate and dump the assembly
+        LLVMSetTargetMachineAsmVerbosity(targetMachine, 1);
+        LLVMSetTargetMachineGlobalISel(targetMachine, 1);
+        string asmOut = writeModuleToStringASM(testModule, targetMachine);
+        // writeln();
+        // writeln(asmOut);
+        if(testModule) {
+            LLVMDisposeModule(testModule);
+        }
     }
-
-    writefln("Verifying module '%s'", testModule.getModuleName());
-    char* msgs;
-    LLVMBool mv = LLVMVerifyModule(testModule, LLVMVerifierFailureAction.LLVMPrintMessageAction, &msgs);
-    if(mv!=0) {
-        writeln("Module verification failed: ", msgs.fromStringz());
-    } else {
-        writeln("Module verification passed");
-    }
-
-    // Generate and dump the assembly
-    LLVMSetTargetMachineAsmVerbosity(targetMachine, 1);
-    LLVMSetTargetMachineGlobalISel(targetMachine, 1);
-    string asmOut = writeModuleToStringASM(testModule, targetMachine);
-    // writeln();
-    // writeln(asmOut);
 
     static if(false) {
         testJit(targetMachine);
     }
-
-    if(testModule) {
-        LLVMDisposeModule(testModule);
+    static if(true) {
+        testCreateModuleFromSource(llvmContext, targetMachine);
     }
+
 }
 
 LLVMValueRef createTestFunction(LLVMContextWrapper ctx, LLVMModuleRef mod) {
