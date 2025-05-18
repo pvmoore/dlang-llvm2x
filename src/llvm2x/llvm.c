@@ -8,6 +8,7 @@
  * LLVMWriteBitcodeToFile
  */
 #include "c:\\Temp\\llvm-project\\llvm\\include\\llvm-c\\BitWriter.h"
+#include "c:\\Temp\\llvm-project\\llvm\\include\\llvm-c\\BitReader.h"
 
 /**
  * LLVMLinkModules2

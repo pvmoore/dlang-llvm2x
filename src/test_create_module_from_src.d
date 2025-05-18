@@ -8,7 +8,7 @@ void testCreateModuleFromSource(LLVMContextWrapper llvmContext, LLVMTargetMachin
     writefln("test create module from source");
     writefln("-----------------------------------------------------------");
 
-    string source = q{;
+    string source2 = q{;
         declare i32 @putchar(i32)
 
         define i32 @main() {
@@ -16,11 +16,52 @@ void testCreateModuleFromSource(LLVMContextWrapper llvmContext, LLVMTargetMachin
             %putchar = call i32 @putchar(i32 48)
             ret i32 0
         }
-
     };
 
-    LLVMModuleRef mod = createModuleFromSource(llvmContext.ctx, source);
+    string source = q{;
+        declare i32 @putchar(i32)
+
+        define void @fakeAssert(i32 %0) {
+        entry:
+            %"==" = icmp eq i32 %0, 0
+            br i1 %"==", label %then, label %else
+
+        then:                                             ; preds = %entry
+            %putchar = call i32 @putchar(i32 109)
+            br label %endif
+
+        endif:                                            ; preds = %then, %else
+            ret void
+
+        else:                                             ; preds = %entry
+            br label %endif
+            }
+
+        define i32 @main() {
+            entry:
+                call void @fakeAssert(i32 1)
+                ret i32 0
+        }
+    };
+
+    static if(true) {
+        LLVMModuleRef mod = createModuleFromBC(llvmContext.ctx, "bug.bc");
+    } else {
+        LLVMModuleRef mod = createModuleFromSource(llvmContext.ctx, source);
+    }
+
     writefln("Created module %s", mod);
+
+    {   
+        writefln("Verifying module ...");
+        char* msgs;
+        if(LLVMVerifyModule(mod, LLVMVerifierFailureAction.LLVMPrintMessageAction, &msgs)) {
+            writefln("Module verification failed: %s", msgs.fromStringz());
+            LLVMDisposeMessage(msgs);
+            return;
+        }
+        writefln("Module verified ok");
+    }
 
     writefln("----------------------------------------------------------------- raw");
     writefln("%s", mod.printModuleToString());
@@ -54,6 +95,8 @@ void testCreateModuleFromSource(LLVMContextWrapper llvmContext, LLVMTargetMachin
     }   
 }
 
+private:
+
 LLVMModuleRef createModuleFromSource(LLVMContextRef context, string source) {
     LLVMMemoryBufferRef buffer = LLVMCreateMemoryBufferWithMemoryRange(source.toStringz(), source.length, "Name", 0);
 
@@ -74,6 +117,27 @@ LLVMModuleRef createModuleFromSource(LLVMContextRef context, string source) {
     return mod;
 }
 
+LLVMModuleRef createModuleFromBC(LLVMContextRef context, string filename) {
+    writefln("Parsing module from BC file: %s", filename);
+    LLVMModuleRef mod;
+    
+    LLVMMemoryBufferRef buffer;
+    if(LLVMCreateMemoryBufferWithContentsOfFile(filename.toStringz(), &buffer, null)) {
+        writefln("Error creating memory buffer from file: %s", filename);
+        return null;
+    }
+
+    LLVMBool res = LLVMParseBitcodeInContext2(context, buffer, &mod);
+    if(res!=0) {
+        writefln("Error parsing module: %s", filename);
+        return null;
+    } else {
+        writefln("Module parsed ok");
+    }
+
+    return mod;
+}
+
 bool optimiseModule(LLVMModuleRef mod, LLVMTargetMachineRef targetMachine) {
     writefln("Optimising module");
     LLVMPassBuilderOptionsRef options = createPassOptions();
@@ -81,24 +145,42 @@ bool optimiseModule(LLVMModuleRef mod, LLVMTargetMachineRef targetMachine) {
         writefln("Optimisation failed: %s", LLVMGetErrorMessage(err).fromStringz());
         return false;
     }
+    LLVMDisposePassBuilderOptions(options);
+    writefln("Optimisation ok");
     return true;
 }
 
 LLVMPassBuilderOptionsRef createPassOptions() {
     // New pass manager
     LLVMPassBuilderOptionsRef passBuilderOptions = LLVMCreatePassBuilderOptions();
-    LLVMPassBuilderOptionsSetVerifyEach(passBuilderOptions, 1);
+    // Toggle debug logging when running the PassBuilder. 
     LLVMPassBuilderOptionsSetDebugLogging(passBuilderOptions, 0);
+
+    // Enable/disable loop interleaving
     LLVMPassBuilderOptionsSetLoopInterleaving(passBuilderOptions, 1);
+
+    // Enable/disable loop vectorization
     LLVMPassBuilderOptionsSetLoopVectorization(passBuilderOptions, 1);
+
+    // Enable/disable slp loop vectorization
     LLVMPassBuilderOptionsSetSLPVectorization(passBuilderOptions, 1);
+
+    // Enable/disable loop unrollin
     LLVMPassBuilderOptionsSetLoopUnrolling(passBuilderOptions, 1);
+
+    // I think this is a code size optimisation :: https://llvm.org/docs/MergeFunctions.html
+    LLVMPassBuilderOptionsSetMergeFunctions(passBuilderOptions, 1);
+
+    // Toggle adding the VerifierPass for the PassBuilder, ensuring all functions inside the module is valid. 
+    LLVMPassBuilderOptionsSetVerifyEach(passBuilderOptions, 1);
+    
+    // Other options that could be useful but I don't know enough about them
     //LLVMPassBuilderOptionsSetAAPipeline(passBuilderOptions, "?");
     //LLVMPassBuilderOptionsSetForgetAllSCEVInLoopUnrolling(passBuilderOptions, 1);
     //LLVMPassBuilderOptionsSetLicmMssaOptCap(passBuilderOptions, ?);
     //LLVMPassBuilderOptionsSetLicmMssaNoAccForPromotionCap(passBuilderOptions, ?);
     //LLVMPassBuilderOptionsSetCallGraphProfile(passBuilderOptions, 1);
-    LLVMPassBuilderOptionsSetMergeFunctions(passBuilderOptions, 0);
     //LLVMPassBuilderOptionsSetInlinerThreshold(passBuilderOptions, 25);
+
     return passBuilderOptions;
 }

@@ -13,6 +13,7 @@ dflags "-P=-IC:/Temp/llvm-project/llvm/include/"
 dflags "-P=-IC:/Temp/llvm-project/llvm/build/include/"
 
 lflags "/LIBPATH:C:/work/llvm-20/lib"
+#lflags "/LIBPATH:C:/Temp/llvm-project/llvm/build/Debug/lib"
 
 # run dumpLibNames() to get this list:
 libs "LLVMAggressiveInstCombine" "LLVMAnalysis" "LLVMAsmParser" "LLVMAsmPrinter" "LLVMBinaryFormat" 

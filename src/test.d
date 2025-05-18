@@ -7,6 +7,7 @@ import std.format : format;
 
 import llvm2x;
 import test_jit;
+import test_build_module;
 import test_create_module_from_src;
 
 void main() {
@@ -94,10 +95,12 @@ void main() {
     static if(false) {
         testJit(targetMachine);
     }
-    static if(true) {
+    static if(false) {
         testCreateModuleFromSource(llvmContext, targetMachine);
     }
-
+    static if(true) {
+        testBuildModule(llvmContext, targetMachine);
+    }
 }
 
 LLVMValueRef createTestFunction(LLVMContextWrapper ctx, LLVMModuleRef mod) {
@@ -153,8 +156,8 @@ LLVMTargetMachineRef createTargetMachine(string targetTriple) {
     LLVMTargetMachineOptionsSetFeatures(options, "+avx2");
     LLVMTargetMachineOptionsSetABI(options, "fast");
     LLVMTargetMachineOptionsSetCodeGenOptLevel(options, LLVMCodeGenOptLevel.LLVMCodeGenLevelAggressive);
-    LLVMTargetMachineOptionsSetRelocMode(options, LLVMRelocMode.LLVMRelocDefault);
-    LLVMTargetMachineOptionsSetCodeModel(options, LLVMCodeModel.LLVMCodeModelDefault);
+    //LLVMTargetMachineOptionsSetRelocMode(options, LLVMRelocMode.LLVMRelocDefault);
+    //LLVMTargetMachineOptionsSetCodeModel(options, LLVMCodeModel.LLVMCodeModelDefault);
 
     LLVMTargetMachineRef targetMachine = LLVMCreateTargetMachineWithOptions(targetRef, targetTriplez, options);
     writefln(" LLVMTargetMachineRef = %s", targetMachine);
