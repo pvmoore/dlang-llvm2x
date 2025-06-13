@@ -21,7 +21,6 @@ void testFunctionPtrs(LLVMContextWrapper wrapper, LLVMTargetMachineRef targetMac
     }
     writefln("Module verified ok");
 
-    writeModuleToFile(mod, targetMachine, LLVMCodeGenFileType.LLVMAssemblyFile, "test_function_ptrs.asm");
     writeModuleToFile(mod, targetMachine, LLVMCodeGenFileType.LLVMObjectFile, "test_function_ptrs.obj");
 
     msLink("test_function_ptrs", true, true);
