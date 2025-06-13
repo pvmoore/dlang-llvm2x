@@ -9,6 +9,7 @@ import llvm2x;
 import test_jit;
 import test_build_module;
 import test_create_module_from_src;
+import test_function_ptrs;
 
 void main() {
 
@@ -98,8 +99,11 @@ void main() {
     static if(false) {
         testCreateModuleFromSource(llvmContext, targetMachine);
     }
-    static if(true) {
+    static if(false) {
         testBuildModule(llvmContext, targetMachine);
+    }
+    static if(true) {
+        testFunctionPtrs(llvmContext, targetMachine);
     }
 }
 

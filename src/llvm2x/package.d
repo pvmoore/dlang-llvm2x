@@ -11,4 +11,5 @@ import llvm2x.helper;
 import llvm2x.pass_manager_new;
 import llvm2x.utils;
 
-import std.string : fromStringz, toStringz;
+import std.string   : fromStringz, toStringz;
+import std.typecons : Tuple, tuple;

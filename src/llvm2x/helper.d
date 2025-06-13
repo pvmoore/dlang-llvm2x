@@ -22,6 +22,14 @@ string printModuleToString(LLVMModuleRef mod) {
     auto chars = LLVMPrintModuleToString(mod);
     return cast(string)chars.fromStringz();
 }
+string printValueToString(LLVMValueRef val) {
+    auto chars = LLVMPrintValueToString(val);
+    return cast(string)chars.fromStringz();
+}
+string printTypeToString(LLVMTypeRef type) {
+    auto chars = LLVMPrintTypeToString(type);
+    return cast(string)chars.fromStringz();
+}
 bool writeModuleToFileLL(LLVMModuleRef mod, string filename) {
     char* error;
     return 0==LLVMPrintModuleToFile(mod, filename.toStringz(), &error);
@@ -116,6 +124,102 @@ bool linkModules(LLVMModuleRef dest, LLVMModuleRef[] srcModules...) {
         if(res!=0) return false;
     }
     return true;
+}
+
+// Verifys the module and returns null if successful or an error message if not
+string verifyModule(LLVMModuleRef mod) {
+    char* msgs;
+    if(LLVMVerifyModule(mod, LLVMVerifierFailureAction.LLVMPrintMessageAction, &msgs)) {
+        string errorMsg =  cast(string)msgs.fromStringz();
+        LLVMDisposeMessage(msgs);
+
+        return errorMsg;
+    }
+    return null;
+}
+
+/**
+ * Link the object file to an executable
+ * 
+ * Returns a tuple of (returnStatus, errorMsg)
+ */
+Tuple!(int, string) msLink(string targetName, bool debugMode, bool deleteObjFile) {
+    string objFile = targetName ~ ".obj";
+    string exeFile = targetName ~ ".exe";
+    string subsystem = "console";
+
+    auto args = [
+        "link",
+        "/NOLOGO",
+        //"/VERBOSE",
+        "/MACHINE:X64",
+        "/WX",              /// Treat linker warnings as errors
+        "/SUBSYSTEM:" ~ subsystem
+    ];
+
+    string[] externalLibs;
+    if(debugMode) {
+        args ~= [
+            "/DEBUG:NONE",  /// Don't generate a PDB for now
+            "/OPT:NOREF"    /// Don't remove unreferenced functions and data
+        ];
+
+        externalLibs ~= [
+            //"ucrtd.lib",                  // MS universal C99 runtime (debug)
+            "msvcrtd.lib",                  // MS C initialization and termination (debug)
+            "legacy_stdio_definitions.lib", // Required for printf (and probably other stdio functions)
+        ];
+        //externalLibs ~= [
+        //    "libucrtd.lib",
+        //    "libcmtd.lib",
+        //    "libvcruntimed.lib"
+        //];
+    } else {
+        args ~= [
+            "/RELEASE",
+            "/OPT:REF",     /// Remove unreferenced functions and data
+            //"/LTCG",        /// Link time code gen
+        ];
+
+        externalLibs ~= [
+            "msvcrt.lib",               // MS C initialization and termination (release)
+            //"ucrt.lib",                 // MS universal C99 runtime (release)
+            "legacy_stdio_definitions.lib", // Required for printf (and probably other stdio functions)
+        ];
+        //externalLibs ~= [
+        //    "libucrt.lib",
+        //    "libcmt.lib",
+        //    "libvcruntime.lib"
+        //];
+    }
+
+    args ~= [
+        objFile,
+        "/OUT:" ~ exeFile
+    ];
+
+    args ~= externalLibs;
+
+    // writefln("link args: \n%s", args.join("\n  "));
+
+    import std.process : spawnProcess, wait;
+
+    int returnStatus;
+    string errorMsg;
+    try{
+        auto pid = spawnProcess(args);
+        returnStatus = wait(pid);
+    }catch(Exception e) {
+        errorMsg     = e.msg;
+        returnStatus = -1;
+    }
+
+    if(deleteObjFile) {
+        import std.file : remove;
+        remove(objFile);
+    }
+
+    return tuple(returnStatus, errorMsg);
 }
 
 //────────────────────────────────────────────────────────────────────────────────────────────────── functions

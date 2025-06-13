@@ -24,15 +24,15 @@ void testBuildModule(LLVMContextWrapper wrapper, LLVMTargetMachineRef targetMach
     LLVMSetLinkage(fakeAssertFunc, LLVMLinkage.LLVMInternalLinkage);
     //LLVMSetFunctionCallConv(fakeAssertFunc, CallingConv.Fast);
   
-    LLVMBasicBlockRef fakeAssertEntry = LLVMAppendBasicBlock(fakeAssertFunc, "entry");
+    LLVMBasicBlockRef fakeAssertEntry = LLVMAppendBasicBlockInContext(context, fakeAssertFunc, "entry");
     LLVMPositionBuilderAtEnd(builder, fakeAssertEntry);
 
     // LLVMValueRef cond = LLVMBuildAlloca(builder, LLVMInt32TypeInContext(context), "cond");
     // LLVMBuildStore(builder, LLVMGetFirstParam(fakeAssertFunc), cond);
 
-    LLVMBasicBlockRef thenBlock = LLVMAppendBasicBlock(fakeAssertFunc, "then");
-    LLVMBasicBlockRef endifBlock = LLVMAppendBasicBlock(fakeAssertFunc, "endif");
-    LLVMBasicBlockRef elseBlock = LLVMAppendBasicBlock(fakeAssertFunc, "else");
+    LLVMBasicBlockRef thenBlock = LLVMAppendBasicBlockInContext(context, fakeAssertFunc, "then");
+    LLVMBasicBlockRef endifBlock = LLVMAppendBasicBlockInContext(context, fakeAssertFunc, "endif");
+    LLVMBasicBlockRef elseBlock = LLVMAppendBasicBlockInContext(context, fakeAssertFunc, "else");
 
 
     //LLVMValueRef cond1 = LLVMBuildLoad2(builder, LLVMInt32TypeInContext(context), cond, "cond1");
