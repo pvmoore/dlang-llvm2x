@@ -6,10 +6,12 @@ import std.stdio  : writefln, writeln;
 import std.format : format;
 
 import llvm2x;
-import test_jit;
+import test_arrays;
 import test_build_module;
 import test_create_module_from_src;
 import test_function_ptrs;
+import test_jit;
+import test_structs;
 
 void main() {
 
@@ -102,8 +104,14 @@ void main() {
     static if(false) {
         testBuildModule(llvmContext, targetMachine);
     }
-    static if(true) {
+    static if(false) {
         testFunctionPtrs(llvmContext, targetMachine);
+    }
+    static if(false) {
+        testStructs(llvmContext, targetMachine);
+    }
+    static if(true) {
+        testArrays(llvmContext, targetMachine);
     }
 }
 
