@@ -1,4 +1,4 @@
-module test_structs;
+module tests.test_structs;
 
 import llvm2x;
 import std.stdio : writefln;

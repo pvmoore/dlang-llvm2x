@@ -1,4 +1,4 @@
-module test;
+module tests.test;
 
 public:
 
@@ -6,28 +6,35 @@ import std.stdio  : writefln, writeln;
 import std.format : format;
 
 import llvm2x;
-import test_arrays;
-import test_build_module;
-import test_create_module_from_src;
-import test_function_ptrs;
-import test_jit;
-import test_structs;
+import tests.test_arrays;
+import tests.test_build_module;
+import tests.test_create_module_from_src;
+import tests.test_function_ptrs;
+import tests.test_structs;
+
+import tests.jit.test_jit;
+import tests.jit.OrcV2AddObjectFile;
+import tests.jit.OrcV2BasicUsage;
+import tests.jit.OrcV2DumpObjects;
+import tests.jit.OrcV2IRTransforms;
+import tests.jit.OrcV2Lazy;
+import tests.jit.OrcV2MCJITLikeMemoryManager;
+import tests.jit.OrcV2RemovableCode;
+import tests.jit.OrcV2VeryLazy;
 
 void main() {
 
-    const binDir = "c:\\work\\llvm-20\\bin";
-
     // Enable this to display the required LLVM libraries
     static if(false) {
+        const binDir = "c:\\work\\llvm-22\\bin";
         dumpLibNames(binDir);
+        if(1.2 < 2) return;
     }
 
     // Display the LLVM version
     uint major, minor, patch;
     LLVMGetVersion(&major, &minor, &patch);
     writeln("LLVM version: ", major, ".", minor, ".", patch);
-
-    writefln("LLVMIsMultithreaded = %s", LLVMIsMultithreaded());
 
     auto llvmContext = new LLVMContextWrapper();
 
@@ -95,6 +102,16 @@ void main() {
         }
     }
 
+    static if(true) {
+        jit_addObjectFile();
+        jit_basicUsage();
+        jit_dumpObjects();
+        jit_irTransforms();
+        jit_lazy();
+        jit_mcjitLikeMemoryManager();
+        jit_removableCode();
+        jit_veryLazy();
+    }
     static if(false) {
         testJit(targetMachine);
     }
@@ -110,7 +127,7 @@ void main() {
     static if(false) {
         testStructs(llvmContext, targetMachine);
     }
-    static if(true) {
+    static if(false) {
         testArrays(llvmContext, targetMachine);
     }
 }
@@ -221,6 +238,10 @@ void setDiagnosticHandler(LLVMContextWrapper wrapper) {
 
 void checkError(LLVMErrorRef err) {
     if(err !is null) {
-        throw new Exception("%s".format(LLVMGetErrorMessage(err).fromStringz()));
+        char* ErrMsg = LLVMGetErrorMessage(err);
+        string errString = cast(string)ErrMsg.fromStringz();
+        LLVMDisposeErrorMessage(ErrMsg);
+
+        throw new Exception("%s".format(errString));
     }
 }

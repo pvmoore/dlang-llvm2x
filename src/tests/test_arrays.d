@@ -1,4 +1,4 @@
-module test_arrays;
+module tests.test_arrays;
 
 import llvm2x;
 import std.stdio : writefln;

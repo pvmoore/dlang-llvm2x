@@ -1,6 +1,6 @@
-module test_jit;
+module tests.jit.test_jit;
 
-import test;
+import tests.test;
 import llvm2x;
 
 extern(C) {
@@ -96,20 +96,48 @@ void testJitBasicUsage(LLVMTargetMachineRef targetMachine, bool dumpObjects, boo
         LLVMOrcObjectTransformLayerSetTransform(objectTransformLayer, &objectTransformLayerFunc, &orcDumpObjects);
     }
 
+    // !! This does not work with LLVM 21. There should be a new way of accessing the
+    // LLVMContextRef from a LLVMOrcThreadSafeContextRef but I don't know how to do it in the C API
+    // (LLVM 21.1.0)
+
     // Create a thread safe context
-    LLVMOrcThreadSafeContextRef threadSafeContext = LLVMOrcCreateNewThreadSafeContext();
-    LLVMContextRef context = LLVMOrcThreadSafeContextGetContext(threadSafeContext);
+    LLVMContextRef context = LLVMContextCreate();
+    // LLVMOrcThreadSafeContextRef threadSafeContext = LLVMOrcCreateNewThreadSafeContext();
+    LLVMOrcThreadSafeContextRef threadSafeContext = LLVMOrcCreateNewThreadSafeContextFromLLVMContext(context);
     
     // Create a module
-    LLVMOrcThreadSafeModuleRef add1Module = createAdd1Module(threadSafeContext);
-    LLVMModuleRef mul2Module = createMul2Module(threadSafeContext);
+    LLVMOrcThreadSafeModuleRef add1Module = createAdd1Module(context, threadSafeContext);
+    LLVMModuleRef mul2Module = createMul2Module(context, threadSafeContext);
+
+    writefln("Writing mul2Module to memory");
+
+    // This crashes here. Sometimes with the message:
+    //   LLVM ERROR: out of memory
+    //   Allocation failed
 
     char* errorMsg;
-    LLVMMemoryBufferRef mul2Mem = writeModuleToMemory(mul2Module, targetMachine, LLVMCodeGenFileType.LLVMObjectFile, errorMsg);
-    if(mul2Mem is null) {
-        writeln("Error writing module to memory: ", errorMsg.fromStringz());
+    static if(true) {
+        LLVMMemoryBufferRef mul2Mem;
+        if(LLVMTargetMachineEmitToMemoryBuffer(
+            targetMachine,
+            mul2Module,
+            LLVMCodeGenFileType.LLVMObjectFile,
+            &errorMsg,
+            &mul2Mem
+        )) {
+            writefln("Error writing module to memory: ", errorMsg.fromStringz());
+        }
+    } else {
+        LLVMMemoryBufferRef mul2Mem = writeModuleToMemory(mul2Module, targetMachine, LLVMCodeGenFileType.LLVMObjectFile, errorMsg);
+        writefln("1");
+        if(mul2Mem is null) {
+            writefln("Error writing module to memory: ", errorMsg.fromStringz());
+        }
     }
+    writefln("Disposing mul2Module");
     LLVMDisposeModule(mul2Module);
+
+    writefln("Adding modules to jit");
 
     // Add a module to the jit
     checkError(LLVMOrcLLJITAddLLVMIRModule(jit, mainJITDylib, add1Module));
@@ -124,7 +152,7 @@ void testJitBasicUsage(LLVMTargetMachineRef targetMachine, bool dumpObjects, boo
     auto mul2Func = lookupFunction!(int function(int))(jit, "mul2");
 
     writeln("add1(2) = ", add1Func(2));
-    writeln("mul2(2) = ", mul2Func(4));
+    writeln("mul2(4) = ", mul2Func(4));
 
     LLVMOrcDisposeLLJIT(jit);
 }
@@ -201,8 +229,8 @@ void testJit(LLVMTargetMachineRef targetMachine) {
 /**
  * Create a module with an int add1(int) function that returns arg+1.
  */
-LLVMOrcThreadSafeModuleRef createAdd1Module(LLVMOrcThreadSafeContextRef threadSafeContext) {
-    LLVMContextRef context = LLVMOrcThreadSafeContextGetContext(threadSafeContext);
+LLVMOrcThreadSafeModuleRef createAdd1Module(LLVMContextRef context, LLVMOrcThreadSafeContextRef threadSafeContext) {
+    //LLVMContextRef context = LLVMOrcThreadSafeContextGetContext(threadSafeContext);
     LLVMBuilderRef builder = LLVMCreateBuilderInContext(context);
     
     auto mod = LLVMModuleCreateWithNameInContext("addModule", context);
@@ -233,8 +261,8 @@ LLVMOrcThreadSafeModuleRef createAdd1Module(LLVMOrcThreadSafeContextRef threadSa
 /**
  * Create a module with a int mul2(int) function that returns arg*2.
  */
-LLVMModuleRef createMul2Module(LLVMOrcThreadSafeContextRef threadSafeContext) {
-    LLVMContextRef context = LLVMOrcThreadSafeContextGetContext(threadSafeContext);
+LLVMModuleRef createMul2Module(LLVMContextRef context, LLVMOrcThreadSafeContextRef threadSafeContext) {
+    //LLVMContextRef context = LLVMOrcThreadSafeContextGetContext(threadSafeContext);
     LLVMBuilderRef builder = LLVMCreateBuilderInContext(context);
     
     auto mod = LLVMModuleCreateWithNameInContext("mulModule", context);

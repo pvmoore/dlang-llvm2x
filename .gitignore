@@ -13,3 +13,5 @@ bin/
 *.lib
 *.lnk
 *.pdb
+
+test_dumped_obj.*

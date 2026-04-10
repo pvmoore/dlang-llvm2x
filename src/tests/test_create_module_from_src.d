@@ -1,4 +1,4 @@
-module test_create_module_from_src;
+module tests.test_create_module_from_src;
 
 import llvm2x;
 import std.stdio : writefln;

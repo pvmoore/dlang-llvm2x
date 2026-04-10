@@ -1,4 +1,4 @@
-module test_function_ptrs;
+module tests.test_function_ptrs;
 
 import llvm2x;
 import std.stdio : writefln;

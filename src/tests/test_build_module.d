@@ -1,4 +1,4 @@
-module test_build_module;
+module tests.test_build_module;
 
 import llvm2x;
 import std.stdio : writefln;
