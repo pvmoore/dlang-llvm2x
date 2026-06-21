@@ -19,10 +19,16 @@ void jit_lazy() {
         // JIT static destructors) and may also fail. In that case we want to render
         // the error to stderr, but not overwrite any existing return value.
         if(J) {
+
+            // Note: in LLVM22.1.8 this asserts in debug mode. I am not sure if this was working better with earlier versions.    
+            // Assertion failed: Pool.empty() && "Dangling references at pool destruction time", file C:\Temp\llvm-project\llvm\include\llvm/ExecutionEngine/Orc/SymbolStringPool.h, line 289
+
+            writefln("Disposing JIT instance");
             checkError(LLVMOrcDisposeLLJIT(J));
         }
 
         // Shut down LLVM.
+        writefln("Shutting down");
         LLVMShutdown();
     }
 

@@ -7,12 +7,12 @@ Fetch the code from github if you don't already have it:
 	git clone https://github.com/llvm/llvm-project.git
 
 
-Change to the desired branch. For llvm 21 we use the llvmorg-22.1.4 branch:
+Change to the desired branch. For llvm 21 we use the llvmorg-22.1.8 branch:
 
-	git checkout llvmorg-22.1.4
+	git checkout llvmorg-22.1.8
 	git status
 
-	> HEAD detached at llvmorg-22.1.4
+	> HEAD detached at llvmorg-22.1.8
 	> nothing to commit, working tree clean
 
 Move to the llvm directory and create a build directory and change to it:

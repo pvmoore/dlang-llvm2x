@@ -23,10 +23,12 @@ void jit_mcjitLikeMemoryManager() {
         // JIT static destructors) and may also fail. In that case we want to render
         // the error to stderr, but not overwrite any existing return value.
         if(J) {
+            writefln("Disposing JIT instance");
             checkError(LLVMOrcDisposeLLJIT(J));
         }
 
         // Shut down LLVM.
+        writefln("Shutting down");
         LLVMShutdown();
     }
 
