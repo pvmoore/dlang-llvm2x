@@ -11,8 +11,8 @@ buildType "release" {
 # Headers and libs directly from the llvm git repo
 dflags "-P=-IC:/Temp/llvm-project/llvm/include/"
 dflags "-P=-IC:/Temp/llvm-project/llvm/build/include/"
-#lflags "/LIBPATH:C:/Temp/llvm-project/llvm/build/Debug/lib" 
-lflags "/LIBPATH:C:/Temp/llvm-project/llvm/build/Release/lib"
+lflags "/LIBPATH:C:/Temp/llvm-project/llvm/build/Debug/lib" 
+#lflags "/LIBPATH:C:/Temp/llvm-project/llvm/build/Release/lib"
 
 # LLVM 22 headers copied from llvm/include and llvm/build/include
 #dflags "-P=-IC:/work/llvm-22/include/"

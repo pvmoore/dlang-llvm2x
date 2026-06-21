@@ -6,6 +6,9 @@ module tests.jit.OrcV2MCJITLikeMemoryManager;
  * 'This demo illustrates the C-API bindings for custom memory managers in
  * ORCv2. They are used here to place generated code into manually allocated
  * buffers that are subsequently marked as executable.'
+ *
+ * Note that this asserts on Windows in debug mode:
+ * Assertion failed: KV.second.getFlags() == I->second && "Resolving symbol with incorrect flags", file C:\Temp\llvm-project\llvm\lib\ExecutionEngine\Orc\Core.cpp, line 2803
  */
 
 import llvm2x; 
@@ -48,6 +51,7 @@ void jit_mcjitLikeMemoryManager() {
 
     // Add our demo module to the JIT.
     {
+        writefln(" Adding module to the JIT");
         LLVMOrcJITDylibRef MainJD = LLVMOrcLLJITGetMainJITDylib(J);
         LLVMErrorRef Err = LLVMOrcLLJITAddLLVMIRModule(J, MainJD, TSM);
         if(Err) {
@@ -59,8 +63,11 @@ void jit_mcjitLikeMemoryManager() {
     }
 
     // Look up the address of our demo entry point.
+    writefln(" Looking up function");
     LLVMOrcJITTargetAddress SumAddr;
     checkError(LLVMOrcLLJITLookup(J, &SumAddr, "sum"));
+
+    writefln(" Executing function");
 
     // If we made it here then everything succeeded. Execute our JIT'd code.
     // int32_t (*Sum)(int32_t, int32_t) = (int32_t(*)(int32_t, int32_t))SumAddr;
@@ -79,8 +86,8 @@ struct Section {
     LLVMBool IsCode;
 }
 
-char CtxCtxPlaceholder;
-char CtxPlaceholder;
+byte CtxCtxPlaceholder;
+byte CtxPlaceholder;
 
 enum MaxSections = 16;
 size_t SectionCount;
@@ -113,6 +120,7 @@ version(Win64) {
 
 
 LLVMOrcThreadSafeModuleRef createDemoModule() {
+    writefln(" Creating demo module");
     // Create an LLVMContext.
     LLVMContextRef Ctx = LLVMContextCreate();
 
@@ -185,8 +193,7 @@ extern(C) {
         return cast(ubyte*)addSection(Size, 1);
     }
 
-    ubyte* memAllocateData(void *Opaque, uintptr_t Size, uint Align,
-                        uint Id, const char* Name, LLVMBool ReadOnly) {
+    ubyte* memAllocateData(void *Opaque, uintptr_t Size, uint Align, uint Id, const char* Name, LLVMBool ReadOnly) {
         writefln("Allocated data section \"%s\"", Name.fromStringz());
         return cast(ubyte*)addSection(Size, 0);
     }
