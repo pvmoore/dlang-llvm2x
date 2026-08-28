@@ -26,7 +26,7 @@ void main() {
 
     // Enable this to display the required LLVM libraries
     static if(false) {
-        const binDir = "c:\\work\\llvm-22\\bin";
+        const binDir = "C:/Temp/llvm-project/llvm/build/Debug/bin";
         dumpLibNames(binDir);
         if(1.2 < 2) return;
     }
@@ -108,7 +108,7 @@ void main() {
         jit_dumpObjects();
         jit_irTransforms();
         jit_lazy();
-        jit_mcjitLikeMemoryManager();
+        //jit_mcjitLikeMemoryManager();
         jit_removableCode();
         jit_veryLazy();
     }
